@@ -87,6 +87,7 @@ class ConvAAE():
 		decoder.add(LeakyReLU(alpha=0.2))
 		decoder.add(Dropout(0.2))
 		decoder.add(Reshape((50, 50, 32)))
+		# The following layers were removed to improve performance - no noticable drop in quality
 		# Deconvolution
 		#decoder.add(Conv2DTranspose(32, kernel_size=3, activation='relu', padding='same'))
 		#decoder.add(Dropout(0.1))
@@ -95,7 +96,7 @@ class ConvAAE():
 		# Upsample
 		decoder.add(Conv2DTranspose(16, kernel_size=(5, 5), strides=(2, 2), activation='relu', padding='valid'))
 		decoder.add(Dropout(0.1))
-		# Squash thingy
+		# Squash image to right size
 		decoder.add(Conv2D(self.img_shape[-1], kernel_size=4, activation='tanh', padding='valid'))
 
 		enc = Input(shape=(self.encoded_dim, ))
@@ -105,6 +106,8 @@ class ConvAAE():
 		return Model(enc, gen_img)
 
 	def build_discriminator(self):
+		# The discriminator classifies the encoded layer
+
 		discriminator = Sequential()
 		discriminator.add(Dense(256, input_dim=self.encoded_dim))
 		discriminator.add(LeakyReLU(alpha=0.2))
@@ -124,7 +127,6 @@ class ConvAAE():
 	def train(self, epochs, batch_size):
 
 		train_imgs = np.load(self.train_loc + '/all_faces.fc')
-
 		train_imgs = rescale_image(train_imgs, (0, 255), (-1, 1))
 
 		for epoch in range(epochs):
@@ -143,7 +145,7 @@ class ConvAAE():
 			d_loss = (self.discriminator.train_on_batch(rand_encs, valid), 
 						self.discriminator.train_on_batch(real_encs, invalid))
 
-			d_loss = [sum(l) / 2.0 for l in zip(*d_loss)]
+			d_loss = [sum(l) / 2.0 for l in zip(*d_loss)] # Gross, I know
 
 			# Generator Training
 			valid = np.ones((batch_size, 1))
@@ -155,8 +157,7 @@ class ConvAAE():
 			print "Generator loss, mse -----", g_loss[0], g_loss[1], "Discriminator loss, acc -", d_loss[0], d_loss[1] * 100
 
 			if not epoch % 200:
-				self.save_images(epoch, 
-					train_imgs[np.random.randint(0, train_imgs.shape[0], 25)])
+				self.save_images(epoch, train_imgs[np.random.randint(0, train_imgs.shape[0], 25)])
 				self.save_model()
 				print '--Saved--'
 		encodings = self.encoder.predict(train_imgs)
@@ -187,9 +188,7 @@ class ConvAAE():
 				elif i == j == 2:
 					axs[i,j].imshow(avg_img[0])
 					axs[i,j].axis('off')
-					#axs[i,j].axis('off')
 				else:
-					#axs[i,j].imshow(gen_imgs[cnt, :,:,0], cmap='gray')
 					axs[i,j].imshow(gen_imgs[cnt])
 					axs[i,j].axis('off')
 				cnt += 1
