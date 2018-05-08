@@ -10,7 +10,7 @@ def main(orig, dest):
 	for file in (y for y in os.listdir(orig) if '.jpg' in y):
 		img = Image.open(orig + '/' + file)
 		img_var = img
-		img_var.thumbnail((100, 100))
+		#img_var.thumbnail((100, 100))
 		img_var.save(dest + '/' + str(i).zfill(3) + '.jpg', 'JPEG')
 		faces.append(np.asarray(img_var))
 		i += 1

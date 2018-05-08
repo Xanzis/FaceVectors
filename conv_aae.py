@@ -24,8 +24,8 @@ class ConvAAE():
 		self.serial = 'conv_aae_gloss99_'
 		self.train_loc = train_loc
 
-		img_rows = 100
-		img_cols = 100
+		img_rows = 256
+		img_cols = 256
 		channels = 3
 		self.img_shape = (img_rows, img_cols, channels)
 		self.encoded_dim = 16
@@ -83,21 +83,26 @@ class ConvAAE():
 		# Upsample for the deconvolution
 		decoder.add(Dense(self.encoded_dim, input_dim=self.encoded_dim))
 		decoder.add(LeakyReLU(alpha=0.2))
-		decoder.add(Dense(50 * 50 * 32))
+		decoder.add(Dense(32 * 32 * 32))
 		decoder.add(LeakyReLU(alpha=0.2))
 		decoder.add(Dropout(0.2))
-		decoder.add(Reshape((50, 50, 32)))
+		decoder.add(Reshape((32, 32, 32)))
 		# The following layers were removed to improve performance - no noticable drop in quality
 		# Deconvolution
+		#
+		# Upsample
 		#decoder.add(Conv2DTranspose(32, kernel_size=3, activation='relu', padding='same'))
 		#decoder.add(Dropout(0.1))
-		##decoder.add(Conv2DTranspose(32, kernel_size=3, activation='relu', padding='same'))
-		##decoder.add(Dropout(0.1))
-		# Upsample
-		decoder.add(Conv2DTranspose(16, kernel_size=(5, 5), strides=(2, 2), activation='relu', padding='valid'))
+		#decoder.add(Conv2DTranspose(32, kernel_size=3, activation='relu', padding='same'))
+		#decoder.add(Dropout(0.1))
+		decoder.add(Conv2DTranspose(16, kernel_size=(4, 4), strides=(2, 2), activation='relu', padding='same'))
+		decoder.add(Dropout(0.1))
+		decoder.add(Conv2DTranspose(16, kernel_size=(8, 8), strides=(2, 2), activation='relu', padding='same'))
+		decoder.add(Dropout(0.1))
+		decoder.add(Conv2DTranspose(32, kernel_size=(8, 8), strides=(2, 2), activation='relu', padding='valid'))
 		decoder.add(Dropout(0.1))
 		# Squash image to right size
-		decoder.add(Conv2D(self.img_shape[-1], kernel_size=4, activation='tanh', padding='valid'))
+		decoder.add(Conv2D(self.img_shape[-1], kernel_size=7, activation='tanh', padding='valid'))
 
 		enc = Input(shape=(self.encoded_dim, ))
 		gen_img = decoder(enc)
@@ -192,7 +197,7 @@ class ConvAAE():
 					axs[i,j].imshow(gen_imgs[cnt])
 					axs[i,j].axis('off')
 				cnt += 1
-		fig.savefig("conv_aae/conv_aae_gloss99_%d.png" % epoch)
+		fig.savefig("conv_aae/conv_aae_gloss99_%d.png" % epoch,dpi=300)
 		plt.close()
 
 	def save_model(self):
