@@ -91,7 +91,6 @@ class Decoder():
 		plt.show()
 		plt.close()
 
-
 dec = Decoder('conv_aae/', 'conv_aae_gloss99_')
 dec.slider_show()
 dec.slider_transition()
