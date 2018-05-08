@@ -1,4 +1,4 @@
-Some of the code is modified from a repo containing the following license:
+Some of the code (specifically: the autoencoder model) is modified from a repo containing the following license:
 
 MIT License
 
