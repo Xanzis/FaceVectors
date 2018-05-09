@@ -161,7 +161,7 @@ class ConvAAE():
 			print "Epoch", epoch
 			print "Generator loss, mse -----", g_loss[0], g_loss[1], "Discriminator loss, acc -", d_loss[0], d_loss[1] * 100
 
-			if not epoch % 200:
+			if not epoch % 50:
 				self.save_images(epoch, train_imgs[np.random.randint(0, train_imgs.shape[0], 25)])
 				self.save_model()
 				print '--Saved--'
